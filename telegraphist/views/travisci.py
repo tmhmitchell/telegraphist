@@ -1,3 +1,5 @@
+import json
+
 import flask
 import whv
 
@@ -11,11 +13,11 @@ def webhook(tld):
     if tld not in (whv.travisci._TLD_ORG, whv.travisci._TLD_COM):
         return ''
 
-    payload = flask.request.form['payload']
+    serialised_payload = flask.request.form['payload']
 
     try:
         valid = whv.travisci.verify(
-            payload=payload.encode(),
+            payload=serialised_payload.encode(),
             signature=flask.request.headers['Signature'].encode(),
             tld=tld
         )
@@ -24,6 +26,8 @@ def webhook(tld):
 
     if not valid:
         return '', 401
+
+    payload = json.loads(serialised_payload)
 
     repo_owner = payload['repository']['owner_name']
     repo_name = payload['repository']['name']

@@ -1,7 +1,9 @@
 import flask
 import gunicorn.app.base
+import requests
 
-from telegraphist import views
+import telegraphist.config
+import telegraphist.views
 
 
 class Telegraphist(gunicorn.app.base.BaseApplication):
@@ -17,9 +19,12 @@ class Telegraphist(gunicorn.app.base.BaseApplication):
         Args:
             app: A wsgi Python application.
             options (dict): the configuration.
-
         """
-        self.options = options or {}
+        if options is None:
+            self.options = {}
+        else:
+            self.options = options
+
         self.application = app
         super().__init__()
 
@@ -37,10 +42,29 @@ class Telegraphist(gunicorn.app.base.BaseApplication):
         return self.application
 
 
+def send_message(template_name, **message_data):
+    message_text = flask.render_template(template_name, **message_data)
+
+    chat_id = flask.current_app.config[telegraphist.config.TG_CHAT_ID]
+    bot_token = flask.current_app.config[telegraphist.config.TG_BOT_TOKEN]
+
+    requests.post(
+        url=f'https://api.telegram.org/bot{bot_token}/sendMessage',
+        data={
+            'chat_id': chat_id,
+            'text': message_text,
+            'parse_mode': 'html'
+        }
+    )
+
+
 def create_wsgi_app():
-    app = flask.Flask(__name__)
-    app.register_blueprint(views.github.bp)
-    app.register_blueprint(views.travisci.bp)
+    app = flask.Flask(
+        import_name=__name__, template_folder='message-templates')
+    app.config.update(telegraphist.config.get_config())
+
+    app.register_blueprint(telegraphist.views.github.bp)
+    app.register_blueprint(telegraphist.views.travisci.bp)
     return app
 
 

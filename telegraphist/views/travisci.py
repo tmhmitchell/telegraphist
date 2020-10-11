@@ -1,22 +1,23 @@
 import flask
 import whv
 
+import telegraphist.core
+
 bp = flask.Blueprint('travis-ci', __name__)
 
 
-@bp.route('/travis-ci/<string:tld>', methods=['POST'])
+@bp.route('/travis-ci<string:tld>', methods=['POST'])
 def webhook(tld):
-    tld_org = whv.travisci._TLD_ORG[1:]
-    tld_com = whv.travisci._TLD_COM[1:]
-
-    if tld not in (tld_org, tld_com):
+    if tld not in (whv.travisci._TLD_ORG, whv.travisci._TLD_COM):
         return ''
+
+    payload = flask.request.form['payload']
 
     try:
         valid = whv.travisci.verify(
-            flask.request.form['payload'].encode(),
-            flask.request.headers['Signature'].encode(),
-            '.' + tld
+            payload=payload.encode(),
+            signature=flask.request.headers['Signature'].encode(),
+            tld=tld
         )
     except KeyError:
         return '', 401
@@ -24,4 +25,16 @@ def webhook(tld):
     if not valid:
         return '', 401
 
-    return f'request went to /travis-ci{tld}'
+    repo_owner = payload['repository']['owner_name']
+    repo_name = payload['repository']['name']
+    repo_slug = f'{repo_owner}/{repo_name}'
+
+    telegraphist.core.send_message(
+        'travis-ci.tmpl',
+        build_url=payload['build_url'],
+        build_number=payload['number'],
+        repo_slug=repo_slug,
+        build_state=payload['state']
+    )
+
+    return ''

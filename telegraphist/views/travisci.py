@@ -3,7 +3,7 @@ import json
 import flask
 import whv
 
-import telegraphist.core
+import telegraphist.message
 
 bp = flask.Blueprint('travis-ci', __name__)
 
@@ -33,7 +33,7 @@ def webhook(tld):
     repo_name = payload['repository']['name']
     repo_slug = f'{repo_owner}/{repo_name}'
 
-    telegraphist.core.send_message(
+    telegraphist.message.send(
         'travis-ci.tmpl',
         build_url=payload['build_url'],
         build_number=payload['number'],

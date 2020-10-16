@@ -8,7 +8,12 @@ import requests
 from telegraphist.config import TelegraphistConfig, KEY
 
 
-def send_message(template_name, **message_data):
+def send(template_name, **message_data):
+    """Send a message via the Telegram API
+
+    The bot the message is send as and the chat ID it's sent to are set via
+    the config file under the telegram settings.
+    """
     config: TelegraphistConfig = flask.current_app.config[KEY]
 
     message_text = flask.render_template(template_name, **message_data)

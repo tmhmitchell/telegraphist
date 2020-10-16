@@ -1,6 +1,5 @@
 import flask
 import gunicorn.app.base
-import requests
 
 import telegraphist.config
 import telegraphist.views.github

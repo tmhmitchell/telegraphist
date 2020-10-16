@@ -3,22 +3,19 @@
 Moved to its own module to avoid circular importing
 """
 import flask
+import requests
 
-import telegraphist.config
+from telegraphist.config import TelegraphistConfig, KEY
 
 
 def send_message(template_name, **message_data):
-    config: telegraphist.config.TelegraphistConfig = flask.current_app.config[
-        telegraphist.config.KEY]
-
-    config.github
+    config: TelegraphistConfig = flask.current_app.config[KEY]
 
     message_text = flask.render_template(template_name, **message_data)
-
     requests.post(
-        url=f'https://api.telegram.org/bot{bot_token}/sendMessage',
+        url=f'https://api.telegram.org/bot{config.telegram.bot_token}/sendMessage',
         data={
-            'chat_id': '',
+            'chat_id': config.telegram.chat_id,
             'text': message_text,
             'parse_mode': 'html'
         }

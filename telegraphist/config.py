@@ -2,7 +2,7 @@
 
 import os
 
-import dataclassy
+import dataclasses
 import yaml
 
 
@@ -12,23 +12,13 @@ TELEGRAPHIST_CONFIG_PATH = 'TELEGRAPHIST_CONFIG_PATH'
 KEY = 'TELEGRAPHIST_CONFIG'
 
 
-@dataclassy.dataclass(kwargs=True)
-class Telegram:  # pylint: disable=too-few-public-methods
-    """Namespace for Telegram settings.
-
-    For us to communicate with Telegram, we need to know
-    1. Which bot account as we "speaking as"
-    2. Which chat are we sending messages to?
-    """
-    token: str
-    chat_id: str
-
-
-@dataclassy.dataclass(kwargs=True)
-class Repos:  # pylint: disable=too-few-public-methods
-    """Namespace for GitHub repo settings"""
-
+@dataclasses.dataclass
+class Repos:
+    """A namspace for repo settings"""
     _repos: dict
+
+    def __init__(self, config):
+        self._repos = config
 
     def get_secret(self, slug):
         """Retrieve the webhook secret for a given repository"""
@@ -39,20 +29,43 @@ class Repos:  # pylint: disable=too-few-public-methods
             raise KeyError(text) from exc
 
 
-@dataclassy.dataclass(kwargs=True)
-class GitHub:  # pylint: disable=too-few-public-methods
-    """Namespace for GitHub settings"""
+@dataclasses.dataclass
+class GitHub:
+    """Namespace for GitHub repo settings"""
     repos: Repos
 
+    def __init__(self, config):
+        self.repos = Repos(config['repos'])
 
-@dataclassy.dataclass(kwargs=True)
-class TelegraphistConfig:  # pylint: disable=too-few-public-methods
+
+@dataclasses.dataclass
+class Telegram:
+    """Namespace for Telegram settings.
+
+    For us to communicate with Telegram, we need to know
+    1. Which bot account as we "speaking as"
+    2. Which chat are we sending messages to?
+    """
+    bot_token: str
+    chat_id: str
+
+    def __init__(self, config):
+        self.bot_token = config['bot-token']
+        self.chat_id = config['chat-id']
+
+
+@dataclasses.dataclass
+class TelegraphistConfig:
     """Container class for application config.
 
     Allows items to be access in a namspaced, autosuggestion-friendly manner.
     """
     telegram: Telegram
     github: GitHub
+
+    def __init__(self, config):
+        self.telegram = Telegram(config['telegram'])
+        self.github = GitHub(config['github'])
 
 
 def get_config():
@@ -67,7 +80,7 @@ def get_config():
 
         with open(config_path) as file_descriptor:
             config_as_dict = yaml.load(file_descriptor, Loader=yaml.SafeLoader)
-            return TelegraphistConfig(**config_as_dict)
+            return TelegraphistConfig(config_as_dict)
 
     except KeyError as exc:
         text = f'Could not find environment variable {exc.args[0]}'

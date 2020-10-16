@@ -1,6 +1,6 @@
 telegram:
-  bot_token: 'YOUR-BOT-TOKEN-HERE'
-  chat_id: 'YOUR-CHAT-ID-HERE'
+  bot-token: 'YOUR-BOT-TOKEN-HERE'
+  chat-id: 'YOUR-CHAT-ID-HERE'
 github:
   repos:
     'author/repo': 'YOUR-REPO-SECRET-HERE'

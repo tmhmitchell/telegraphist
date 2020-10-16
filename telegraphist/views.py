@@ -1,3 +1,4 @@
+"""views - route function declarations and blueprint"""
 import json
 
 import flask
@@ -5,11 +6,16 @@ import whv
 
 import telegraphist.message
 
-bp = flask.Blueprint('travis-ci', __name__)
+blueprint = flask.Blueprint('webhooks', __name__)
 
 
-@bp.route('/travis-ci<string:tld>', methods=['POST'])
-def webhook(tld):
+@blueprint.route('/travis-ci<string:tld>', methods=['POST'])
+def travisci_route(tld):
+    """Handle webhook from Travis CI
+
+    Because Travis uses a different public key for their .com and .org
+    instances, we need to capture this from the URL.
+    """
     if tld not in (whv.travisci._TLD_ORG, whv.travisci._TLD_COM):
         return ''
 
@@ -42,3 +48,9 @@ def webhook(tld):
     )
 
     return ''
+
+
+@blueprint.route('/github')
+def github_route():
+    """Handle webook from GitHub"""
+    return 'request went to /github'

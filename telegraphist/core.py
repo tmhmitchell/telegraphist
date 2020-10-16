@@ -1,57 +1,59 @@
+"""core - run a Telegraphist instance"""
+
 import flask
 import gunicorn.app.base
+import gunicorn.app.wsgiapp
+import gunicorn.config
 
 import telegraphist.config
-import telegraphist.views.github
-import telegraphist.views.travisci
+import telegraphist.views
 
 
-class Telegraphist(gunicorn.app.base.BaseApplication):
+class TelegraphistApplication(gunicorn.app.base.Application):
     """Wrap a flask application in Gunicorn.
 
     Adapted from:
     https://gitlab.tymlez.com/os/bigchaindb/-/blob/20d3dd4f/bigchaindb/web/server.py
     """
 
-    def __init__(self, app, options=None):
+    # pylint: disable=super-init-not-called
+    def __init__(self, app):
         """Initialize a new standalone application.
 
         Args:
             app: A wsgi Python application.
             options (dict): the configuration.
         """
-        if options is None:
-            self.options = {}
-        else:
-            self.options = options
-
-        self.application = app
-        super().__init__()
+        self.callable = app
+        self.logger = None
+        self.cfg = gunicorn.config.Config(
+            usage='',
+            prog='telegraphist'
+        )
+        self.load_config()
 
     def load_config(self):
-        return {}
-        # config = dict((key, value) for key, value in self.options.items()
-        #               if key in self.cfg.settings and value is not None)
+        # Return access logs to the stdout
+        self.cfg.settings['accesslog'].value = '-'
 
-        # for key, value in config.items():
-        #     # not sure if we need the `key.lower` here, will just keep
-        #     # keep it for now.
-        #     self.cfg.set(key.lower(), value)
+    def init(self, *_):
+        """Do nothing - I'm not even sure what init does"""
 
     def load(self):
-        return self.application
+        """Do nothing - we set callable in __init__"""
 
 
 def create_wsgi_app():
+    """Configures a Flask instance that can be run by a wSGI server"""
     app = flask.Flask(
         import_name=__name__, template_folder='message-templates')
     app.config[telegraphist.config.KEY] = telegraphist.config.get_config()
 
-    app.register_blueprint(telegraphist.views.github.bp)
-    app.register_blueprint(telegraphist.views.travisci.bp)
+    app.register_blueprint(telegraphist.views.blueprint)
     return app
 
 
 def run():
+    """Let's gooooooooooooooo!"""
     wsgi = create_wsgi_app()
-    Telegraphist(wsgi).run()
+    TelegraphistApplication(wsgi).run()

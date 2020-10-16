@@ -42,9 +42,6 @@ class Telegraphist(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-
-
-
 def create_wsgi_app():
     app = flask.Flask(
         import_name=__name__, template_folder='message-templates')

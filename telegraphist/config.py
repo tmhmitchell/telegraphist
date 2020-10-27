@@ -60,13 +60,15 @@ class TelegraphistConfig:
     """
     telegram: Telegram
     github: GitHub
+    sentry_dsn: str
 
     def __init__(self, config):
         self.telegram = Telegram(config['telegram'])
         self.github = GitHub(config['github'])
+        self.sentry_dsn = config['sentry-dsn']
 
 
-def get_config():
+def get_config() -> TelegraphistConfig:
     """Create a configuration object from the environment
 
     Returns:

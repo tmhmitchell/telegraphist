@@ -14,7 +14,7 @@ def send(template_name, **message_data):
     The bot the message is send as and the chat ID it's sent to are set via
     the config file under the telegram settings.
     """
-    config: TelegraphistConfig = flask.current_app.config[KEY]
+    config = flask.current_app.config[KEY]
 
     message_text = flask.render_template(template_name, **message_data)
     requests.post(

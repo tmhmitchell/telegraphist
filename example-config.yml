@@ -1,3 +1,4 @@
+sentry-dsn: 'YOUR-SENTRY-URL-HERE'
 telegram:
   bot-token: 'YOUR-BOT-TOKEN-HERE'
   chat-id: 'YOUR-CHAT-ID-HERE'

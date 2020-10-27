@@ -16,6 +16,7 @@ def travisci_route(tld):
     Because Travis uses a different public key for their .com and .org
     instances, we need to capture this from the URL.
     """
+    # pylint: disable=protected-access
     if tld not in (whv.travisci._TLD_ORG, whv.travisci._TLD_COM):
         return ''
 

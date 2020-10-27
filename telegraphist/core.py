@@ -2,8 +2,9 @@
 
 import flask
 import gunicorn.app.base
-import gunicorn.app.wsgiapp
 import gunicorn.config
+import sentry_sdk
+import sentry_sdk.integrations.flask
 
 import telegraphist.config
 import telegraphist.views
@@ -45,9 +46,17 @@ class TelegraphistApplication(gunicorn.app.base.Application):
 
 def create_wsgi_app():
     """Configures a Flask instance that can be run by a wSGI server"""
+    config = telegraphist.config.get_config()
+
+    sentry_sdk.init(
+        dsn=config.sentry_dsn,
+        integrations=[sentry_sdk.integrations.flask.FlaskIntegration()],
+        traces_sample_rate=1.0
+    )
+
     app = flask.Flask(
         import_name=__name__, template_folder='message-templates')
-    app.config[telegraphist.config.KEY] = telegraphist.config.get_config()
+    app.config[telegraphist.config.KEY] = config
 
     app.register_blueprint(telegraphist.views.blueprint)
     return app

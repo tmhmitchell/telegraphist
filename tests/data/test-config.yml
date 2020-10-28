@@ -1,0 +1,8 @@
+sentry-dsn: 'YOUR-SENTRY-URL-HERE'
+telegram:
+  bot-token: 'YOUR-BOT-TOKEN-HERE'
+  chat-id: 'YOUR-CHAT-ID-HERE'
+github:
+  repos:
+    'author/repo': 'YOUR-REPO-SECRET-HERE'
+    'author/other-repo': 'YOUR-OTHER-REPO-SECRET-HERE'

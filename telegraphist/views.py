@@ -35,23 +35,31 @@ def travisci_route(tld):
         return '', 401
 
     payload = json.loads(serialised_payload)
+    repo_slug = flask.request.headers['Travis-Repo-Slug']
 
-    repo_owner = payload['repository']['owner_name']
-    repo_name = payload['repository']['name']
-    repo_slug = f'{repo_owner}/{repo_name}'
+    build_state_translations = {
+        'Pending': 'is pending',
+        'Passed': 'has passed',
+        'Fixed': 'was fixed',
+        'Broken': 'has broken',
+        'Failed': 'has failed',
+        'Still Failing': 'has failed again',
+        'Canceled': 'was cancelled',
+        'Errored': 'has errored'
+    }
 
     telegraphist.message.send(
         'travis-ci.tmpl',
         build_url=payload['build_url'],
         build_number=payload['number'],
         repo_slug=repo_slug,
-        build_state=payload['state']
+        build_state=build_state_translations[payload['status_message']]
     )
 
     return ''
 
 
-@blueprint.route('/github')
+@blueprint.route('/github', methods=['POST'])
 def github_route():
     """Handle webook from GitHub"""
     return 'request went to /github'
